@@ -6,10 +6,49 @@ ctrl = {0b000000: (0b1, 0b0, 0b0, 0b1, 0b0, 0b0, 0b0, 0b10), # R-Type
         0b100011: (0b0, 0b1, 0b1, 0b1, 0b1, 0b0, 0b0, 0b00), # lw
         0b101011: (0b0, 0b1, 0b0, 0b0, 0b0, 0b1, 0b0, 0b00), # sw
         0b000100: (0b0, 0b0, 0b0, 0b0, 0b0, 0b0, 0b1, 0b01), # beq
-        0b001000: (0b0, 0b1, 0b0, 0b1, 0b0, 0b0, 0b1, 0b00)} # addi
+        0b001000: (0b0, 0b1, 0b0, 0b1, 0b0, 0b0, 0b0, 0b00)} # addi
+
+def EX_fwd():
+    # Forwarding Unit
+    if G_MEM.MEM_WB_CTRL["REG_WRITE"] == 0b1 and G_MEM.MEM_WB["RD"] != 0b0 and G_MEM.MEM_WB["RD"] == G_MEM.ID_EX["RS"] and (G_MEM.EX_MEM["RD"] != G_MEM.ID_EX["RS"] or G_MEM.EX_MEM_CTRL["REG_WRITE"] == 0b0):
+        G_MEM.FWD["FWD_A"] = 0b01
+    elif G_MEM.EX_MEM_CTRL["REG_WRITE"] == 0b1 and G_MEM.EX_MEM["RD"] != 0b0 and G_MEM.EX_MEM["RD"] == G_MEM.ID_EX["RS"]:
+        G_MEM.FWD["FWD_A"] = 0b10
+    else:
+        G_MEM.FWD["FWD_A"] = 0b0
+
+    if G_MEM.MEM_WB_CTRL["REG_WRITE"] == 0b1 and G_MEM.MEM_WB["RD"] != 0b0 and G_MEM.MEM_WB["RD"] == G_MEM.ID_EX["RT"] and (G_MEM.EX_MEM["RD"] != G_MEM.ID_EX["RT"] or G_MEM.EX_MEM_CTRL["REG_WRITE"] == 0b0):
+        G_MEM.FWD["FWD_B"] = 0b01
+    elif G_MEM.EX_MEM_CTRL["REG_WRITE"] == 0b1 and G_MEM.EX_MEM["RD"] != 0b0 and G_MEM.EX_MEM["RD"] == G_MEM.ID_EX["RT"]:
+        G_MEM.FWD["FWD_B"] = 0b10
+    else:
+        G_MEM.FWD["FWD_B"] = 0b0
+
+    # FwdA Multiplexer
+    if G_MEM.FWD["FWD_A"] == 0b0 or not G_UTL.fwd:
+        G_UTL.outFwdA = G_MEM.ID_EX["A"]
+    elif G_MEM.FWD["FWD_A"] == 0b1:
+        if G_MEM.MEM_WB_CTRL["MEM_TO_REG"] == 0b1:
+            G_UTL.outFwdA = G_MEM.MEM_WB["LMD"]
+        else:
+            G_UTL.outFwdA = G_MEM.MEM_WB["ALU_OUT"]
+    elif G_MEM.FWD["FWD_A"] == 0b10:
+        G_UTL.outFwdA = G_MEM.EX_MEM["ALU_OUT"]
+
+    # FwdB Multiplexer
+    if G_MEM.FWD["FWD_B"] == 0b0 or not G_UTL.fwd:
+        G_UTL.outFwdB = G_MEM.ID_EX["B"]
+    elif G_MEM.FWD["FWD_B"] == 0b1:
+        # MemToReg Multiplexer
+        if G_MEM.MEM_WB_CTRL["MEM_TO_REG"] == 0b1:
+            G_UTL.outFwdB = G_MEM.MEM_WB["LMD"]
+        else:
+            G_UTL.outFwdB = G_MEM.MEM_WB["ALU_OUT"]
+    elif G_MEM.FWD["FWD_B"] == 0b10:
+        G_UTL.outFwdB = G_MEM.EX_MEM["ALU_OUT"]
 
 def IF():
-    # Grab instruction from memory array 
+    # Grab instruction from memory array
     try:
         curInst = G_MEM.INST[G_MEM.PC//4]
     except IndexError:
@@ -22,20 +61,25 @@ def IF():
     # Set IF/ID.NPC
     G_MEM.IF_ID["NPC"] = G_MEM.PC + 4
 
-    # Set IF/ID.IR
-    G_MEM.IF_ID["IR"] = curInst
+    if G_MEM.FWD["IF_ID_WRITE"] == 0b1 or not G_UTL.fwd:
+        # Set IF/ID.IR
+        G_MEM.IF_ID["IR"] = curInst
 
-    # Set own PC (PC Multiplexer)
-    if G_MEM.EX_MEM["ZERO"] == 1 and G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
-        G_MEM.PC = G_MEM.EX_MEM["BR_TGT"]
-    else:
-        G_MEM.PC = G_MEM.PC + 4
+    if G_MEM.FWD["PC_WRITE"] == 0b1 or not G_UTL.fwd:
+        # Set own PC (PC Multiplexer)
+        if G_MEM.EX_MEM["ZERO"] == 1 and G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
+            G_MEM.PC = G_MEM.EX_MEM["BR_TGT"]
+            print("jumped to {}".format(G_MEM.EX_MEM["BR_TGT"]))
+        else:
+            G_MEM.PC = G_MEM.PC + 4
 
 def ID():
     # Set simulator flags
     G_UTL.ran["ID"] = G_UTL.ran["IF"]
     G_UTL.wasIdle["ID"] = False
 
+    # TODO add hazard unit
+    
     # Set Control of ID/EX (Control Unit)
     opcode = (G_MEM.IF_ID["IR"] & 0xFC000000) >> 26 # IR[31..26]
     G_MEM.ID_EX_CTRL["REG_DST"] = ctrl[opcode][0]
@@ -58,16 +102,19 @@ def ID():
     reg2 = (G_MEM.IF_ID["IR"] & 0x001F0000) >> 16 # IR[20..16]
     G_MEM.ID_EX["B"] = G_MEM.REGS[reg2]
 
-    # Set ID/EX.Imm (Sign Extend)
-    imm = (G_MEM.IF_ID["IR"] & 0x0000FFFF) >> 0 # IR[15..0]
-    # TODO Simulate Sign Extend
-    G_MEM.ID_EX["IMM"] = imm
-
     # Set ID/EX.RT
     G_MEM.ID_EX["RT"] = (G_MEM.IF_ID["IR"] & 0x001F0000) >> 16 # IR[20..16]
 
     # Set ID/EX.RD
     G_MEM.ID_EX["RD"] = (G_MEM.IF_ID["IR"] & 0x0000F800) >> 11 # IR[15..11]
+
+    # Set ID/EX.Imm (Sign Extend)
+    imm = (G_MEM.IF_ID["IR"] & 0x0000FFFF) >> 0 # IR[15..0]
+    # TODO Simulate Sign Extend
+    G_MEM.ID_EX["IMM"] = imm
+
+    # Set ID/EX.RS
+    G_MEM.ID_EX["RS"] = (G_MEM.IF_ID["IR"] & 0x03E00000) >> 21 # IR[25..21]
 
 def EX():
     # Set simulator flags
@@ -85,13 +132,15 @@ def EX():
     G_MEM.EX_MEM["BR_TGT"] = G_MEM.ID_EX["NPC"] + (G_MEM.ID_EX["IMM"] << 2)
 
     # Set internal ALU source A
-    aluA = G_MEM.ID_EX["A"]
+    aluA = G_UTL.outFwdA
 
     # Set internal ALU source B (B Multiplexer)
     if G_MEM.ID_EX_CTRL["ALU_SRC"] == 0b1:
         aluB = G_MEM.ID_EX["IMM"]
     else:
-        aluB = G_MEM.ID_EX["B"]
+        aluB = G_UTL.outFwdB
+
+    print
 
     # Set EX/MEM.Zero (ALU)
     if aluA - aluB == 0:
@@ -131,9 +180,9 @@ def EX():
     G_MEM.EX_MEM["ALU_OUT"] = out
 
     # Set EX/MEM.B
-    G_MEM.EX_MEM["B"] = G_MEM.ID_EX["B"]
+    G_MEM.EX_MEM["B"] = G_UTL.outFwdB
 
-    # Set EX/MEM.RD (RD Multiplexer)
+    # Set EX/MEM.RD (RegDst Multiplexer)
     if G_MEM.ID_EX_CTRL["REG_DST"] == 0b1:
         G_MEM.EX_MEM["RD"] = G_MEM.ID_EX["RD"]
     else:
@@ -171,6 +220,7 @@ def WB():
 
     # Write to Registers
     if G_MEM.MEM_WB_CTRL["REG_WRITE"] == 0b1 and G_MEM.MEM_WB["RD"] != 0:
+        # MemToReg Multiplexer
         if G_MEM.MEM_WB_CTRL["MEM_TO_REG"] == 0b1:
             G_MEM.REGS[G_MEM.MEM_WB["RD"]] = G_MEM.MEM_WB["LMD"]
         else:

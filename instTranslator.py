@@ -11,7 +11,7 @@
 # srl $d, $t, shamt  # 000000|00000|rt[5]|rd[5]|shamt|000010 # rd = rt >> shamt
 # lw $t, offset($s)  # 100011|rs[5]|rt[5]|     offset[16]    # rt = mem(rs + offset)
 # sw $t, offset($s)  # 101011|rs[5]|rt[5]|     offset[16]    # mem(rs + offset) = rt
-# beq $s, $t, offset # 000100|rs[5]|rt[5]|     offset[16]    # if $s == $t: advance_pc(offset << 2))
+# beq $s, $t, offset # 000100|rs[5]|rt[5]|     offset[16]    # if rs == rt: advance_pc(offset << 2))
 # addi $t, $s, imm   # 001000|rs[5]|rt[5]|      imm[16]      # rt = rs + imm
 
 import G_MEM, G_UTL

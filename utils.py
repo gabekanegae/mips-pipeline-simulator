@@ -11,42 +11,61 @@ def loadProgram(filename):
 
     return content
 
+def printFwdUnit():
+    print("               ╔═════════════[FORWARDING AND HAZARD UNITS]══════════════╗")
+    if G_MEM.FWD["PC_WRITE"] == 1 and G_MEM.FWD["IF_ID_WRITE"] == 1 and G_MEM.FWD["FWD_A"] == 0 and G_MEM.FWD["FWD_B"] == 0:
+        print("               ║ No action.                                             ║")
+    else:
+        if G_MEM.FWD["PC_WRITE"] == 0 and G_MEM.FWD["IF_ID_WRITE"] == 0:
+            print("               ║ Stalling (blocking write on PC and IF/ID)...           ║")
+
+        if G_MEM.FWD["FWD_A"] == 1:
+            print("               ║ FWD_A=1 (MEM/WB.ALU_OUT -> A)...                       ║")
+        elif G_MEM.FWD["FWD_A"] == 2:
+            print("               ║ FWD_A=2 (EX/MEM.ALU_OUT -> A)...                       ║")
+
+        if G_MEM.FWD["FWD_B"] == 1:
+            print("               ║ FWD_B=1 (MEM/WB.ALU_OUT -> Mux @ aluB and EX/MEM.B)... ║")
+        elif G_MEM.FWD["FWD_B"] == 2:
+            print("               ║ FWD_B=2 (EX/MEM.ALU_OUT -> Mux @ aluB and EX/MEM.B)... ║")
+    print("               ╚════════════════════════════════════════════════════════╝")
+
 def printTempRegs():
-    print("╔═════════════════════╦═══════════[TEMPORARY REGISTERS]═══════════╦═════════════════════╗")
-    print("║       [IF/ID]       ║       [ID/EX]       ║      [EX/MEM]       ║      [MEM/WB]       ║")
-    print("║═════════════════════╬═════════════════════╬═════════════════════╬═════════════════════║")
-    print("║                     ║      REG_DST=[{}]    ║                     ║                     ║".format(G_MEM.ID_EX_CTRL["REG_DST"]))
-    print("║                     ║      ALU_SRC=[{}]    ║                     ║                     ║".format(G_MEM.ID_EX_CTRL["ALU_SRC"]))
-    print("║                     ║   MEM_TO_REG=[{}]    ║   MEM_TO_REG=[{}]    ║   MEM_TO_REG=[{}]    ║".format(G_MEM.ID_EX_CTRL["MEM_TO_REG"], G_MEM.EX_MEM_CTRL["MEM_TO_REG"], G_MEM.MEM_WB_CTRL["MEM_TO_REG"]))
-    print("║                     ║    REG_WRITE=[{}]    ║    REG_WRITE=[{}]    ║    REG_WRITE=[{}]    ║".format(G_MEM.ID_EX_CTRL["REG_WRITE"], G_MEM.EX_MEM_CTRL["REG_WRITE"], G_MEM.MEM_WB_CTRL["REG_WRITE"]))
-    print("║                     ║     MEM_READ=[{}]    ║     MEM_READ=[{}]    ║                     ║".format(G_MEM.ID_EX_CTRL["MEM_READ"], G_MEM.EX_MEM_CTRL["MEM_READ"]))
-    print("║                     ║    MEM_WRITE=[{}]    ║    MEM_WRITE=[{}]    ║                     ║".format(G_MEM.ID_EX_CTRL["MEM_WRITE"], G_MEM.EX_MEM_CTRL["MEM_WRITE"]))
-    print("║                     ║       BRANCH=[{}]    ║       BRANCH=[{}]    ║                     ║".format(G_MEM.ID_EX_CTRL["BRANCH"], G_MEM.EX_MEM_CTRL["BRANCH"]))
-    print("║                     ║      ALU_OP=[{:02b}]    ║                     ║                     ║".format(G_MEM.ID_EX_CTRL["ALU_OP"]))
-    print("╠═════════════════════╬═════════════════════╬═════════════════════╬═════════════════════╣")
-    print("║      NPC=[{:08X}] ║      NPC=[{:08X}] ║   BR_TGT=[{:08X}] ║                     ║".format(G_MEM.IF_ID["NPC"], G_MEM.ID_EX["NPC"], G_MEM.EX_MEM["BR_TGT"]))
-    print("║       IR=[{:08X}] ║                     ║     ZERO=[{:08X}] ║      LMD=[{:08X}] ║".format(G_MEM.IF_ID["IR"], G_MEM.EX_MEM["ZERO"], G_MEM.MEM_WB["LMD"]))
-    print("║                     ║        A=[{:08X}] ║  ALU_OUT=[{:08X}] ║  ALU_OUT=[{:08X}] ║".format(G_MEM.ID_EX["A"], G_MEM.EX_MEM["ALU_OUT"], G_MEM.MEM_WB["ALU_OUT"]))
-    print("║                     ║        B=[{:08X}] ║        B=[{:08X}] ║                     ║".format(G_MEM.ID_EX["B"], G_MEM.EX_MEM["B"]))
-    print("║                     ║      IMM=[{:08X}] ║                     ║                     ║".format(G_MEM.ID_EX["IMM"]))
-    print("║                     ║       RT=[{:08X}] ║                     ║                     ║".format(G_MEM.ID_EX["RT"]))
-    print("║                     ║       RD=[{:08X}] ║       RD=[{:08X}] ║       RD=[{:08X}] ║".format(G_MEM.ID_EX["RD"], G_MEM.EX_MEM["RD"], G_MEM.MEM_WB["RD"]))
-    print("╚═════════════════════╩═════════════════════╩═════════════════════╩═════════════════════╝")
+    print("╔════════════════════╦══════════[TEMPORARY REGISTERS]══════════╦════════════════════╗")
+    print("║      [IF/ID]       ║      [ID/EX]       ║      [EX/MEM]      ║      [MEM/WB]      ║")
+    print("║════════════════════╬════════════════════╬════════════════════╬════════════════════║")
+    print("║                    ║     MEM_TO_REG=[{}] ║     MEM_TO_REG=[{}] ║     MEM_TO_REG=[{}] ║".format(G_MEM.ID_EX_CTRL["MEM_TO_REG"], G_MEM.EX_MEM_CTRL["MEM_TO_REG"], G_MEM.MEM_WB_CTRL["MEM_TO_REG"]))
+    print("║                    ║      REG_WRITE=[{}] ║      REG_WRITE=[{}] ║      REG_WRITE=[{}] ║".format(G_MEM.ID_EX_CTRL["REG_WRITE"], G_MEM.EX_MEM_CTRL["REG_WRITE"], G_MEM.MEM_WB_CTRL["REG_WRITE"]))
+    print("║                    ║         BRANCH=[{}] ║         BRANCH=[{}] ║                    ║".format(G_MEM.ID_EX_CTRL["BRANCH"], G_MEM.EX_MEM_CTRL["BRANCH"]))
+    print("║                    ║       MEM_READ=[{}] ║       MEM_READ=[{}] ║                    ║".format(G_MEM.ID_EX_CTRL["MEM_READ"], G_MEM.EX_MEM_CTRL["MEM_READ"]))
+    print("║                    ║      MEM_WRITE=[{}] ║      MEM_WRITE=[{}] ║                    ║".format(G_MEM.ID_EX_CTRL["MEM_WRITE"], G_MEM.EX_MEM_CTRL["MEM_WRITE"]))
+    print("║                    ║        REG_DST=[{}] ║                    ║                    ║".format(G_MEM.ID_EX_CTRL["REG_DST"]))
+    print("║                    ║        ALU_SRC=[{}] ║                    ║                    ║".format(G_MEM.ID_EX_CTRL["ALU_SRC"]))
+    print("║                    ║        ALU_OP=[{:02b}] ║                    ║                    ║".format(G_MEM.ID_EX_CTRL["ALU_OP"]))
+    print("╠════════════════════╬════════════════════╬════════════════════╬════════════════════╣")
+    print("║     NPC=[{:08X}] ║     NPC=[{:08X}] ║  BR_TGT=[{:08X}] ║                    ║".format(G_MEM.IF_ID["NPC"], G_MEM.ID_EX["NPC"], G_MEM.EX_MEM["BR_TGT"]))
+    print("║                    ║       A=[{:08X}] ║    ZERO=[{:08X}] ║     LMD=[{:08X}] ║".format(G_MEM.ID_EX["A"], G_MEM.EX_MEM["ZERO"], G_MEM.MEM_WB["LMD"]))
+    print("║      IR=[{:08X}] ║       B=[{:08X}] ║ ALU_OUT=[{:08X}] ║                    ║".format(G_MEM.IF_ID["IR"], G_MEM.ID_EX["B"], G_MEM.EX_MEM["ALU_OUT"]))
+    print("║                    ║      RT=[{:08X}] ║       B=[{:08X}] ║ ALU_OUT=[{:08X}] ║".format(G_MEM.ID_EX["RT"], G_MEM.EX_MEM["B"], G_MEM.MEM_WB["ALU_OUT"]))
+    print("║                    ║      RD=[{:08X}] ║      RD=[{:08X}] ║      RD=[{:08X}] ║".format(G_MEM.ID_EX["RD"], G_MEM.EX_MEM["RD"], G_MEM.MEM_WB["RD"]))
+    print("║                    ║     IMM=[{:08X}] ║                    ║                    ║".format(G_MEM.ID_EX["IMM"]))
+    print("║                    ║      RS=[{:08X}] ║                    ║                    ║".format(G_MEM.ID_EX["RS"]))
+    print("╚════════════════════╩════════════════════╩════════════════════╩════════════════════╝")
 
 def printPC():
-    print("╔════[PC]════╗")
-    print("║ [{:08X}] ║".format(G_MEM.PC))
-    print("╚════════════╝")
+    print("                                   ╔════[PC]════╗")
+    print("                                   ║ [{:08X}] ║".format(G_MEM.PC))
+    print("                                   ╚════════════╝")
 
 def printInstMem():
-    print("╔═════╦═══════════════════════════[PROGRAM]═════════╦═══════════════════════╗")
+    print("╔═════╦═════════════════════════════[PROGRAM]═══════════╦════════════════════════╗")
 
     i = 0
     for i in range(len(G_MEM.INST)):
-        print("║ {:>3} ║ [{:08X}|{:032b}] ║ {:<21} ║".format(i*4, G_MEM.INST[i], G_MEM.INST[i], instTranslator.decode(G_MEM.INST[i])))
+        print("║ {:>3} ║ 0x{:08X} = 0b{:032b} ║ {:<22} ║".format(i*4, G_MEM.INST[i], G_MEM.INST[i], instTranslator.decode(G_MEM.INST[i])))
         i += 1
 
-    print("╚═════╩═════════════════════════════════════════════╩═══════════════════════╝")
+    print("╚═════╩═════════════════════════════════════════════════╩════════════════════════╝")
 
 def printRegMem():
     print("╔════════════════════╦═══════════════[REGISTERS]═══════════════╦════════════════════╗")
@@ -61,21 +80,21 @@ def printRegMem():
     print("╚════════════════════╩════════════════════╩════════════════════╩════════════════════╝")
 
 def printDataMem():
-    print("╔══════════════════╦═══════════════[MEMORY]══════════════╦══════════════════╗")
+    print("    ╔══════════════════╦═══════════════[MEMORY]══════════════╦══════════════════╗")
     memSize = len(G_MEM.DATA)
     for i in range(memSize//4):
         a, b, c, d = i*4, (memSize)+i*4, (memSize*2)+i*4, (memSize*3)+i*4
-        print("║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║".format(a, G_MEM.DATA[a//4], b, G_MEM.DATA[b//4], c, G_MEM.DATA[c//4], d, G_MEM.DATA[d//4]))        
-    print("╚══════════════════╩══════════════════╩══════════════════╩══════════════════╝")
+        print("    ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║".format(a, G_MEM.DATA[a//4], b, G_MEM.DATA[b//4], c, G_MEM.DATA[c//4], d, G_MEM.DATA[d//4]))        
+    print("    ╚══════════════════╩══════════════════╩══════════════════╩══════════════════╝")
 
 def printHistory(clkHistory):
     # Convert clkHistory to stage matrix
     m = [[" " for i in range(len(clkHistory))] for i in range(len(G_MEM.INST))]
     for i in range(len(clkHistory)):
         for exe in clkHistory[i]:
-            # if exe[2]: # Idle
-            #     m[exe[1][0]][i] = "" # "(" + exe[0] + ")"
-            # else:
+            if exe[2]: # Idle
+                m[exe[1][0]][i] = "" # "(" + exe[0] + ")"
+            else:
                 m[exe[1][0]][i] = exe[0]
 
     # Print header and column titles
@@ -88,6 +107,7 @@ def printHistory(clkHistory):
 
     # Print stage matrix
     for i in range(len(m)):
+        # if G_MEM.INST[i] == 0: continue # Skip nops
         print("║ {:>21} ║".format(instTranslator.decode(G_MEM.INST[i])), end="")
         for j in range(len(m[0])):
             print(m[i][j].center(5), end=" ")

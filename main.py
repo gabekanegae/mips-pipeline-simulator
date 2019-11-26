@@ -38,6 +38,9 @@ def main():
     # Don't print memory after each clock
     silent = ("-s" in sys.argv)
 
+    # Skip clock stepping
+    skipSteps = False
+
     # Run simulation
     clkHistory = []
     clk = 0
@@ -46,12 +49,12 @@ def main():
         if silent:
             print("─"*20 + " CLK #{} ".format(clk) + "─"*20)
         else:
-            print("─"*42 + " CLK #{} ".format(clk) + "─"*42)
-            printPC()
+            print("─"*38 + " CLK #{} ".format(clk) + "─"*38)
 
         clkHistory.append([])
 
         # Run all stages "in parallel"
+        stages.EX_fwd()
         stages.WB()
         stages.MEM()
         stages.EX()
@@ -67,17 +70,27 @@ def main():
         # Report if stage was run
         for stage in ["IF", "ID", "EX", "MEM", "WB"]:
             if G_UTL.ran[stage][1] != 0:
-                b = " (idle)" if G_UTL.wasIdle[stage] else ""
+                idle = " (idle)" if G_UTL.wasIdle[stage] else ""
                 clkHistory[clk].append((stage, G_UTL.ran[stage], G_UTL.wasIdle[stage]))
                 print("> Stage {}: #{} = [{}]{}.".format(stage, G_UTL.ran[stage][0]*4,
-                                                         instTranslator.decode(G_UTL.ran[stage][1]), b))
+                                                         instTranslator.decode(G_UTL.ran[stage][1]), idle))
 
         # Print resulting memory
         if not silent:
+            print("─"*(83+len(str(clk))))
+            printPC()
+            if G_UTL.fwd: printFwdUnit()
             printTempRegs()
             printRegMem()
             printDataMem()
+            print("─"*(83+len(str(clk))))
         clk += 1
+
+        if not skipSteps:
+            opt = input("| step: [ENTER] | end: [E|Q] | ").lower()
+            print()
+            if opt == "e" or opt == "q":
+                skipSteps = True
 
     print()
     print("Empty pipeline, ending execution...")

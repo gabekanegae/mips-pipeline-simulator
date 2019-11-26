@@ -17,3 +17,7 @@ EINST = -1
 EARG = -2
 EFLOW = -3
 ERROR = [EINST, EARG, EFLOW]
+
+fwd = True
+outFwdA = 0
+outFwdB = 0
