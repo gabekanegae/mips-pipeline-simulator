@@ -5,7 +5,6 @@ PC = 0
 INST = []
 REGS = [0 for i in range(G_UTL.REGS_SIZE)]
 DATA = [0 for i in range(G_UTL.DATA_SIZE)]
-DATA[0] = 0xFF
 
 IF_ID = {"NPC": 0, "IR": 0}
 ID_EX = {"NPC": 0, "A": 0, "B": 0, "RT": 0, "RD": 0, "IMM": 0, "RS": 0}

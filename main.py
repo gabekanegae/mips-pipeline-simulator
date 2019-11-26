@@ -59,6 +59,7 @@ def main():
         stages.MEM()
         stages.EX()
         stages.ID()
+        stages.ID_hzd()
         stages.IF()
 
         # Keep only the 32 LSB from memory
@@ -87,7 +88,12 @@ def main():
         clk += 1
 
         if not skipSteps:
-            opt = input("| step: [ENTER] | end: [E|Q] | ").lower()
+            try:
+                opt = input("| step: [ENTER] | end: [E|Q] | ").lower()
+            except KeyboardInterrupt:
+                print("\nExecution aborted.")
+                exit()
+            
             print()
             if opt == "e" or opt == "q":
                 skipSteps = True

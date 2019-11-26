@@ -47,6 +47,19 @@ def EX_fwd():
     elif G_MEM.FWD["FWD_B"] == 0b10:
         G_UTL.outFwdB = G_MEM.EX_MEM["ALU_OUT"]
 
+def ID_hzd():
+    # Hazard Unit
+    if_id_rs = (G_MEM.IF_ID["IR"] & 0x03E00000) >> 21 # IR[25..21]
+    if_id_rt = (G_MEM.IF_ID["IR"] & 0x001F0000) >> 16 # IR[20..16]
+    if G_MEM.ID_EX_CTRL["MEM_READ"] == 0b1 and (G_MEM.ID_EX["RT"] == if_id_rs or G_MEM.ID_EX["RT"] == if_id_rt) and G_UTL.fwd:
+        G_MEM.FWD["PC_WRITE"] = 0b0
+        G_MEM.FWD["IF_ID_WRITE"] = 0b0
+        G_UTL.stall = True
+    else:
+        G_MEM.FWD["PC_WRITE"] = 0b1
+        G_MEM.FWD["IF_ID_WRITE"] = 0b1
+        G_UTL.stall = False
+
 def IF():
     # Grab instruction from memory array
     try:
@@ -55,13 +68,13 @@ def IF():
         curInst = 0
 
     # Set simulator flags
-    G_UTL.ran["IF"] = (G_MEM.PC//4, curInst)
-    G_UTL.wasIdle["IF"] = False
-
-    # Set IF/ID.NPC
-    G_MEM.IF_ID["NPC"] = G_MEM.PC + 4
+    G_UTL.ran["IF"] = (0, 0) if G_UTL.stall else (G_MEM.PC//4, curInst)
+    G_UTL.wasIdle["IF"] = G_UTL.stall
 
     if G_MEM.FWD["IF_ID_WRITE"] == 0b1 or not G_UTL.fwd:
+        # Set IF/ID.NPC
+        G_MEM.IF_ID["NPC"] = G_MEM.PC + 4
+
         # Set IF/ID.IR
         G_MEM.IF_ID["IR"] = curInst
 
@@ -75,21 +88,30 @@ def IF():
 
 def ID():
     # Set simulator flags
-    G_UTL.ran["ID"] = G_UTL.ran["IF"]
-    G_UTL.wasIdle["ID"] = False
+    G_UTL.ran["ID"] = (0, 0) if G_UTL.stall else G_UTL.ran["IF"]
+    G_UTL.wasIdle["ID"] = G_UTL.stall
 
-    # TODO add hazard unit
-    
-    # Set Control of ID/EX (Control Unit)
-    opcode = (G_MEM.IF_ID["IR"] & 0xFC000000) >> 26 # IR[31..26]
-    G_MEM.ID_EX_CTRL["REG_DST"] = ctrl[opcode][0]
-    G_MEM.ID_EX_CTRL["ALU_SRC"] = ctrl[opcode][1]
-    G_MEM.ID_EX_CTRL["MEM_TO_REG"] = ctrl[opcode][2]
-    G_MEM.ID_EX_CTRL["REG_WRITE"] = ctrl[opcode][3]
-    G_MEM.ID_EX_CTRL["MEM_READ"] = ctrl[opcode][4]
-    G_MEM.ID_EX_CTRL["MEM_WRITE"] = ctrl[opcode][5]
-    G_MEM.ID_EX_CTRL["BRANCH"] = ctrl[opcode][6]
-    G_MEM.ID_EX_CTRL["ALU_OP"] = ctrl[opcode][7]
+    if G_UTL.stall:
+        # Stall the pipeline, adding a bubble
+        G_MEM.ID_EX_CTRL["REG_DST"] = 0b0
+        G_MEM.ID_EX_CTRL["ALU_SRC"] = 0b0
+        G_MEM.ID_EX_CTRL["MEM_TO_REG"] = 0b0
+        G_MEM.ID_EX_CTRL["REG_WRITE"] = 0b0
+        G_MEM.ID_EX_CTRL["MEM_READ"] = 0b0
+        G_MEM.ID_EX_CTRL["MEM_WRITE"] = 0b0
+        G_MEM.ID_EX_CTRL["BRANCH"] = 0b0
+        G_MEM.ID_EX_CTRL["ALU_OP"] = 0b0
+    else:
+        # Set Control of ID/EX (Control Unit)
+        opcode = (G_MEM.IF_ID["IR"] & 0xFC000000) >> 26 # IR[31..26]
+        G_MEM.ID_EX_CTRL["REG_DST"] = ctrl[opcode][0]
+        G_MEM.ID_EX_CTRL["ALU_SRC"] = ctrl[opcode][1]
+        G_MEM.ID_EX_CTRL["MEM_TO_REG"] = ctrl[opcode][2]
+        G_MEM.ID_EX_CTRL["REG_WRITE"] = ctrl[opcode][3]
+        G_MEM.ID_EX_CTRL["MEM_READ"] = ctrl[opcode][4]
+        G_MEM.ID_EX_CTRL["MEM_WRITE"] = ctrl[opcode][5]
+        G_MEM.ID_EX_CTRL["BRANCH"] = ctrl[opcode][6]
+        G_MEM.ID_EX_CTRL["ALU_OP"] = ctrl[opcode][7]
 
     # Set ID/EX.NPC
     G_MEM.ID_EX["NPC"] = G_MEM.IF_ID["NPC"]
@@ -139,8 +161,6 @@ def EX():
         aluB = G_MEM.ID_EX["IMM"]
     else:
         aluB = G_UTL.outFwdB
-
-    print
 
     # Set EX/MEM.Zero (ALU)
     if aluA - aluB == 0:
@@ -199,14 +219,36 @@ def MEM():
 
     # Set MEM/WB.LMD (read from Data Memory)
     if G_MEM.EX_MEM_CTRL["MEM_READ"] == 1:
-        G_MEM.MEM_WB["LMD"] = G_MEM.DATA[G_MEM.EX_MEM["ALU_OUT"]//4]
+        # The simulation memory might not be big enough
+        if G_MEM.EX_MEM["ALU_OUT"]//4 < G_UTL.DATA_SIZE:
+            G_MEM.MEM_WB["LMD"] = G_MEM.DATA[G_MEM.EX_MEM["ALU_OUT"]//4]
+        else:
+            print("***WARNING***")
+            print("\tMemory Read at position {} not executed:".format(G_MEM.EX_MEM["ALU_OUT"]))
+            print("\t\tMemory only has {} positions.".format(G_UTL.DATA_SIZE*4))
+            
+            try:
+                input("Press ENTER to continue execution or abort with CTRL-C. ")
+            except KeyboardInterrupt:
+                print("Execution aborted.")
+                exit()
     
     # Write to Data Memory
     if G_MEM.EX_MEM_CTRL["MEM_WRITE"] == 1:
         # The simulation memory might not be big enough
         if G_MEM.EX_MEM["ALU_OUT"]//4 < G_UTL.DATA_SIZE:
             G_MEM.DATA[G_MEM.EX_MEM["ALU_OUT"]//4] = G_MEM.EX_MEM["B"]
-
+        else:
+            print("***WARNING***")
+            print("\tMemory Write at position {} not executed:".format(G_MEM.EX_MEM["ALU_OUT"]))
+            print("\t\tMemory only has {} positions.".format(G_UTL.DATA_SIZE*4))
+            
+            try:
+                input("Press ENTER to continue execution or abort with CTRL-C. ")
+            except KeyboardInterrupt:
+                print("Execution aborted.")
+                exit()
+    
     # Set MEM/WB.ALUOut
     G_MEM.MEM_WB["ALU_OUT"] = G_MEM.EX_MEM["ALU_OUT"]
 
