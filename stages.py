@@ -170,7 +170,7 @@ def EX():
 
     # Set EX/MEM.AluOut (ALU + ALU Control)
     out = 0
-    if G_MEM.ID_EX_CTRL["ALU_OP"] == 00: # Add (lw/sw/addi)
+    if G_MEM.ID_EX_CTRL["ALU_OP"] == 0: # Add (lw/sw/addi)
         out = aluA + aluB
     elif G_MEM.ID_EX_CTRL["ALU_OP"] == 1: # Sub (beq)
         out = aluA - aluB

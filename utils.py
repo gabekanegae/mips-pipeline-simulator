@@ -30,8 +30,8 @@ def printFwdUnit():
             print("               ║ FWD_B=2 (EX/MEM.ALU_OUT -> Mux @ aluB and EX/MEM.B)... ║")
     print("               ╚════════════════════════════════════════════════════════╝")
 
-def printTempRegs():
-    print("╔════════════════════╦══════════[TEMPORARY REGISTERS]══════════╦════════════════════╗")
+def printPipelineRegs():
+    print("╔════════════════════╦═══════════[PIPELINE REGISTERS]══════════╦════════════════════╗")
     print("║      [IF/ID]       ║      [ID/EX]       ║      [EX/MEM]      ║      [MEM/WB]      ║")
     print("║════════════════════╬════════════════════╬════════════════════╬════════════════════║")
     print("║                    ║     MEM_TO_REG=[{}] ║     MEM_TO_REG=[{}] ║     MEM_TO_REG=[{}] ║".format(G_MEM.ID_EX_CTRL["MEM_TO_REG"], G_MEM.EX_MEM_CTRL["MEM_TO_REG"], G_MEM.MEM_WB_CTRL["MEM_TO_REG"]))

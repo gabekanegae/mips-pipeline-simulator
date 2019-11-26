@@ -40,7 +40,7 @@ def main():
     silent = ("-s" in sys.argv)
 
     # Skips clock stepping
-    skipSteps = False
+    skipSteps = silent
 
     # Run simulation, will run until all pipeline stages are empty
     clkHistory = []
@@ -81,7 +81,7 @@ def main():
             print("─"*(83+len(str(clk))))
             printPC()
             if G_UTL.fwd: printFwdUnit()
-            printTempRegs()
+            printPipelineRegs()
             printRegMem()
             printDataMem()
             print("─"*(83+len(str(clk))))
@@ -96,8 +96,15 @@ def main():
                 print("\nExecution aborted.")
                 exit()
 
+    if silent:
+        print()
+        printPipelineRegs()
+        printRegMem()
+        printDataMem()
+    else:
+        print("Empty pipeline, ending execution...")
+
     print()
-    print("Empty pipeline, ending execution...")
     print("Program ran in {} clocks.".format(clk))
     print()
 
