@@ -1,7 +1,7 @@
 import instTranslator
 import G_MEM, G_UTL
 
-def loadProgram(filename):
+def readFile(filename):
     content = []
     with open(filename, "r", encoding="UTF-8") as f:
         for l in f:
@@ -88,14 +88,15 @@ def printDataMem():
     print("    ╚══════════════════╩══════════════════╩══════════════════╩══════════════════╝")
 
 def printHistory(clkHistory):
-    # Convert clkHistory to stage matrix
-    m = [[" " for i in range(len(clkHistory))] for i in range(len(G_MEM.INST))]
+    # Convert clkHistory to history board
+    history = [[" " for i in range(len(clkHistory))] for i in range(len(G_MEM.INST))]
     for i in range(len(clkHistory)):
         for exe in clkHistory[i]:
             if exe[2]: # Idle
-                m[exe[1][0]][i] = "" # "(" + exe[0] + ")"
+                history[exe[1][0]][i] = ""
+                # history[exe[1][0]][i] = "(" + exe[0] + ")" # Show idle stages
             else:
-                m[exe[1][0]][i] = exe[0]
+                history[exe[1][0]][i] = exe[0]
 
     # Print header and column titles
     print("╔═══════════════════════╦" + "═"*(6*len(clkHistory)) + "╗")
@@ -105,11 +106,10 @@ def printHistory(clkHistory):
     print("║")
     print("╠═══════════════════════╬" + "═"*(6*len(clkHistory)) + "╣")
 
-    # Print stage matrix
-    for i in range(len(m)):
-        # if G_MEM.INST[i] == 0: continue # Skip nops
+    # Print history board
+    for i in range(len(history)):
         print("║ {:>21} ║".format(instTranslator.decode(G_MEM.INST[i])), end="")
-        for j in range(len(m[0])):
-            print(m[i][j].center(5), end=" ")
+        for j in range(len(history[0])):
+            print(history[i][j].center(5), end=" ")
         print("║")
     print("╚═══════════════════════╩" + "═"*(6*len(clkHistory)) + "╝")

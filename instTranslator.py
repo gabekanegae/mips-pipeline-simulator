@@ -18,8 +18,9 @@ import G_MEM, G_UTL
 
 # Convert from string to int
 def encode(inst):
-    inst = inst.replace(",", "")
+    inst = inst.replace(",", "") # Ignore commas
 
+    # Replace register names with its index
     for i in range(len(G_UTL.regNames)):
         inst = inst.replace(G_UTL.regNames[i], str(i))
     inst = inst.replace("$", "") # $0, $4, $7, etc.
@@ -27,20 +28,22 @@ def encode(inst):
     inst = inst.split()
 
     out = G_UTL.EINST
-    if inst[0] in G_UTL.rTypeWords:
+    if inst[0] in G_UTL.rTypeWords: # R-Type
         out = 0b000000 << 5
 
         if inst[0] == "sll" or inst[0] == "srl":
             try:
                 rd, rt, shamt = [int(i) for i in inst[1:]]
             except:
-                return G_UTL.EARG
+                return G_UTL.EARG # Not correct number of arguments
 
+            # Check for under/overflow
             nrd, nrt, nshamt = rd&0x1F, rt&0x1F, shamt&0x1F
             if [nrd, nrt, nshamt] != [rd, rt, shamt]:
                 return G_UTL.EFLOW
             rd, rt, shamt = nrd, nrt, nshamt
 
+            # Encode
             out |= rt
             out <<= 5
             out |= rd
@@ -48,17 +51,20 @@ def encode(inst):
             out |= shamt
             out <<= 6
             out |= G_UTL.rTypeWords[inst[0]]
-        else:
+
+        else: # R-Types other than sll/srl
             try:
                 rd, rs, rt = [int(i) for i in inst[1:]]
             except:
-                return G_UTL.EARG
+                return G_UTL.EARG # Not correct number of arguments
 
+            # Check for under/overflow
             nrd, nrs, nrt = rd&0x1F, rs&0x1F, rt&0x1F
             if [nrd, nrs, nrt] != [rd, rs, rt]:
                 return G_UTL.EFLOW
             rd, rs, rt = nrd, nrs, nrt
 
+            # Encode
             out |= rs
             out <<= 5
             out |= rt
@@ -77,13 +83,15 @@ def encode(inst):
 
             rt, offset, rs = [int(i) for i in inst[1:]]
         except:
-            return G_UTL.EARG
+            return G_UTL.EARG # Not correct number of arguments
 
+        # Check for under/overflow
         nrt, nrs, noffset = rt&0x1F, rs&0x1F, offset&0xFFFF
         if [nrt, nrs, noffset] != [rt, rs, offset]:
             return G_UTL.EFLOW
         rt, rs, offset = nrt, nrs, noffset
 
+        # Encode
         out |= rs
         out <<= 5
         out |= rt
@@ -96,13 +104,15 @@ def encode(inst):
         try:
             rs, rt, offset = [int(i) for i in inst[1:]]
         except:
-            return G_UTL.EARG
+            return G_UTL.EARG # Not correct number of arguments
 
+        # Check for under/overflow
         nrs, nrt, noffset = rs&0x1F, rt&0x1F, offset&0xFFFF
         if [nrs, nrt, noffset] != [rs, rt, offset]:
             return G_UTL.EFLOW
         rs, rt, offset = nrs, nrt, noffset
 
+        # Encode
         out |= rs
         out <<= 5
         out |= rt
@@ -115,13 +125,15 @@ def encode(inst):
         try:
             rt, rs, imm = [int(i) for i in inst[1:]]
         except:
-            return G_UTL.EARG
+            return G_UTL.EARG # Not correct number of arguments
 
+        # Check for under/overflow
         nrt, nrs, nimm = rt&0x1F, rs&0x1F, imm&0xFFFF
         if [nrt, nrs, nimm] != [rt, rs, imm]:
             return G_UTL.EFLOW
         rt, rs, imm = nrt, nrs, nimm
 
+        # Encode
         out |= rs
         out <<= 5
         out |= rt

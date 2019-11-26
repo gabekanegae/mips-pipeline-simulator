@@ -9,15 +9,16 @@ def main():
     filename = "program.asm"
 
     # Read .asm
-    program = loadProgram(filename)
+    program = readFile(filename)
     programLength = len(program)
 
     # Encode and load .asm into memory
     for i in range(programLength):
-        if not program[i] or program[i][0] == "#":
-            continue
-
+        # Remove comments
+        if not program[i] or program[i][0] == "#": continue
         encoded = instTranslator.encode(program[i].split("#")[0])
+
+        # Detect errors, if none then continue loading
         if encoded not in G_UTL.ERROR:
             G_MEM.INST.append(encoded)
         else:
@@ -31,21 +32,20 @@ def main():
                 print("\t\tOne or more arguments are under/overflowing")
             return
 
-    # Print the interpreted program
+    # Print the program as loaded
     printInstMem()
     print()
 
-    # Don't print memory after each clock
+    # Doesn't print memory after each clock
     silent = ("-s" in sys.argv)
 
-    # Skip clock stepping
+    # Skips clock stepping
     skipSteps = False
 
-    # Run simulation
+    # Run simulation, will run until all pipeline stages are empty
     clkHistory = []
     clk = 0
-    while clk == 0 or (G_UTL.ran["IF"][1] != 0 or G_UTL.ran["ID"][1] != 0
-                       or G_UTL.ran["EX"][1] != 0 or G_UTL.ran["MEM"][1] != 0):
+    while clk == 0 or (G_UTL.ran["IF"][1] != 0 or G_UTL.ran["ID"][1] != 0 or G_UTL.ran["EX"][1] != 0 or G_UTL.ran["MEM"][1] != 0):
         if silent:
             print("─"*20 + " CLK #{} ".format(clk) + "─"*20)
         else:
@@ -87,16 +87,14 @@ def main():
             print("─"*(83+len(str(clk))))
         clk += 1
 
+        # Clock step prompt
         if not skipSteps:
             try:
                 opt = input("| step: [ENTER] | end: [E|Q] | ").lower()
+                skipSteps = (opt == "e" or opt == "q")
             except KeyboardInterrupt:
                 print("\nExecution aborted.")
                 exit()
-            
-            print()
-            if opt == "e" or opt == "q":
-                skipSteps = True
 
     print()
     print("Empty pipeline, ending execution...")
@@ -104,6 +102,7 @@ def main():
     print()
 
     printHistory(clkHistory)
+
     return
 
 if __name__ == "__main__":
