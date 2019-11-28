@@ -25,7 +25,7 @@ def EX_fwd():
         G_MEM.FWD["FWD_B"] = 0
 
     # FwdA Multiplexer
-    if G_MEM.FWD["FWD_A"] == 0 or not G_UTL.fwd:
+    if G_MEM.FWD["FWD_A"] == 0 or not G_UTL.data_hzd:
         G_UTL.outFwdA = G_MEM.ID_EX["A"]
     elif G_MEM.FWD["FWD_A"] == 1:
         if G_MEM.MEM_WB_CTRL["MEM_TO_REG"] == 1:
@@ -36,7 +36,7 @@ def EX_fwd():
         G_UTL.outFwdA = G_MEM.EX_MEM["ALU_OUT"]
 
     # FwdB Multiplexer
-    if G_MEM.FWD["FWD_B"] == 0 or not G_UTL.fwd:
+    if G_MEM.FWD["FWD_B"] == 0 or not G_UTL.data_hzd:
         G_UTL.outFwdB = G_MEM.ID_EX["B"]
     elif G_MEM.FWD["FWD_B"] == 1:
         # MemToReg Multiplexer
@@ -52,11 +52,11 @@ def ID_hzd():
     if_id_rs = (G_MEM.IF_ID["IR"] & 0x03E00000) >> 21 # IR[25..21]
     if_id_rt = (G_MEM.IF_ID["IR"] & 0x001F0000) >> 16 # IR[20..16]
 
-    if G_MEM.ID_EX_CTRL["MEM_READ"] == 1 and (G_MEM.ID_EX["RT"] == if_id_rs or G_MEM.ID_EX["RT"] == if_id_rt) and G_UTL.fwd:
+    if G_MEM.ID_EX_CTRL["MEM_READ"] == 1 and (G_MEM.ID_EX["RT"] == if_id_rs or G_MEM.ID_EX["RT"] == if_id_rt) and G_UTL.data_hzd:
         G_MEM.FWD["PC_WRITE"] = 0
         G_MEM.FWD["IF_ID_WRITE"] = 0
         G_MEM.FWD["STALL"] = 1
-    elif G_MEM.ID_EX_CTRL["BRANCH"] == 1 or G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
+    elif (G_MEM.ID_EX_CTRL["BRANCH"] == 1 or G_MEM.EX_MEM_CTRL["BRANCH"] == 1) and G_UTL.ctrl_hzd:
         G_MEM.FWD["IF_ID_WRITE"] = 0
         G_MEM.FWD["STALL"] = 1
     else:
@@ -75,14 +75,14 @@ def IF():
     G_UTL.ran["IF"] = (0, 0) if G_MEM.FWD["STALL"] == 1 else (G_MEM.PC//4, curInst)
     G_UTL.wasIdle["IF"] = (G_MEM.FWD["STALL"] == 1)
 
-    if G_MEM.FWD["IF_ID_WRITE"] == 1 or not G_UTL.fwd:
+    if G_MEM.FWD["IF_ID_WRITE"] == 1 or not G_UTL.data_hzd:
         # Set IF/ID.NPC
         G_MEM.IF_ID["NPC"] = G_MEM.PC + 4
 
         # Set IF/ID.IR
         G_MEM.IF_ID["IR"] = curInst
 
-    if G_MEM.FWD["PC_WRITE"] == 1 or not G_UTL.fwd:
+    if G_MEM.FWD["PC_WRITE"] == 1 or not G_UTL.data_hzd:
         # Set own PC (PC Multiplexer)
         if G_MEM.EX_MEM["ZERO"] == 1 and G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
             G_MEM.PC = G_MEM.EX_MEM["BR_TGT"]

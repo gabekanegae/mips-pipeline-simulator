@@ -25,8 +25,9 @@ EARG = -2
 EFLOW = -3
 ERROR = [EINST, EARG, EFLOW]
 
-# Enable or disable Fowarding+Hazard Units
-fwd = True
+# Enable or disable hazard protections
+data_hzd = True
+ctrl_hzd = True
 
 # Forwarding+Hazard Units helper variables
 outFwdA = 0

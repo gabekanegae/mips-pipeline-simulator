@@ -11,7 +11,7 @@ def readFile(filename):
 
     return content
 
-def printFwdUnit():
+def printFwdAndHazard():
     print("               ╔═════════════[FORWARDING AND HAZARD UNITS]══════════════╗")
     if G_MEM.FWD["PC_WRITE"] == 1 and G_MEM.FWD["IF_ID_WRITE"] == 1 and G_MEM.FWD["FWD_A"] == 0 and G_MEM.FWD["FWD_B"] == 0:
         print("               ║ No action.                                             ║")

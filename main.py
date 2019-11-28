@@ -80,7 +80,7 @@ def main():
         if not silent:
             print("─"*(83+len(str(clk))))
             printPC()
-            if G_UTL.fwd: printFwdUnit()
+            if G_UTL.data_hzd or G_UTL.ctrl_hzd: printFwdAndHazard()
             printPipelineRegs()
             printRegMem()
             printDataMem()
