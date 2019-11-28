@@ -95,23 +95,23 @@ def printHistory(clkHistory):
     for i in range(len(clkHistory)):
         for exe in clkHistory[i]:
             if exe[2]: # Idle
-                history[exe[1][0]][i] = ""
+                history[exe[1][0]][i] = " "
                 # history[exe[1][0]][i] = "(" + exe[0] + ")" # Show idle stages
             else:
                 history[exe[1][0]][i] = exe[0]
 
     # Print header and column titles
-    print("╔════════════════════════╦" + "═"*(6*len(clkHistory)) + "╗")
-    print("║  " + "Clock #".center(21) + " ║", end="")
+    print("╔═════╦════════════════════════╦" + "═"*(6*len(clkHistory)) + "╗")
+    print("║ Mem ║ " + "Clock #".center(22) + " ║", end="")
     for i in range(len(clkHistory)):
         print(str(i).center(5), end=" ")
     print("║")
-    print("╠════════════════════════╬" + "═"*(6*len(clkHistory)) + "╣")
+    print("╠═════╬════════════════════════╬" + "═"*(6*len(clkHistory)) + "╣")
 
     # Print history board
     for i in range(len(history)):
-        print("║ {:>22} ║".format(instTranslator.decode(G_MEM.INST[i])), end="")
+        print("║ {:>3} ║ {:>22} ║".format(i*4, instTranslator.decode(G_MEM.INST[i])), end="")
         for j in range(len(history[0])):
             print(history[i][j].center(5), end=" ")
         print("║")
-    print("╚════════════════════════╩" + "═"*(6*len(clkHistory)) + "╝")
+    print("╚═════╩════════════════════════╩" + "═"*(6*len(clkHistory)) + "╝")
