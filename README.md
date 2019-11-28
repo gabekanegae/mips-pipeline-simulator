@@ -26,4 +26,4 @@ Supported Instructions
 
 Datapath
 -------
-![](diagramFinished.png)
+![](diagramControlHazard.png)
