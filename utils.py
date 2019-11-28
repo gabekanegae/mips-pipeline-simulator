@@ -18,6 +18,8 @@ def printFwdUnit():
     else:
         if G_MEM.FWD["PC_WRITE"] == 0 and G_MEM.FWD["IF_ID_WRITE"] == 0:
             print("               ║ Stalling (blocking write on PC and IF/ID)...           ║")
+        elif G_MEM.ID_EX_CTRL["BRANCH"] == 1 or G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
+            print("               ║ Stalling (blocking write on PC and IF/ID)...           ║")
 
         if G_MEM.FWD["FWD_A"] == 1:
             print("               ║ FWD_A=1 (MEM/WB.ALU_OUT -> A)...                       ║")
@@ -99,17 +101,17 @@ def printHistory(clkHistory):
                 history[exe[1][0]][i] = exe[0]
 
     # Print header and column titles
-    print("╔═══════════════════════╦" + "═"*(6*len(clkHistory)) + "╗")
-    print("║ " + "Clock #".center(21) + " ║", end="")
+    print("╔════════════════════════╦" + "═"*(6*len(clkHistory)) + "╗")
+    print("║  " + "Clock #".center(21) + " ║", end="")
     for i in range(len(clkHistory)):
         print(str(i).center(5), end=" ")
     print("║")
-    print("╠═══════════════════════╬" + "═"*(6*len(clkHistory)) + "╣")
+    print("╠════════════════════════╬" + "═"*(6*len(clkHistory)) + "╣")
 
     # Print history board
     for i in range(len(history)):
-        print("║ {:>21} ║".format(instTranslator.decode(G_MEM.INST[i])), end="")
+        print("║ {:>22} ║".format(instTranslator.decode(G_MEM.INST[i])), end="")
         for j in range(len(history[0])):
             print(history[i][j].center(5), end=" ")
         print("║")
-    print("╚═══════════════════════╩" + "═"*(6*len(clkHistory)) + "╝")
+    print("╚════════════════════════╩" + "═"*(6*len(clkHistory)) + "╝")

@@ -55,11 +55,14 @@ def ID_hzd():
     if G_MEM.ID_EX_CTRL["MEM_READ"] == 1 and (G_MEM.ID_EX["RT"] == if_id_rs or G_MEM.ID_EX["RT"] == if_id_rt) and G_UTL.fwd:
         G_MEM.FWD["PC_WRITE"] = 0
         G_MEM.FWD["IF_ID_WRITE"] = 0
-        G_UTL.stall = True
+        G_MEM.FWD["STALL"] = 1
+    elif G_MEM.ID_EX_CTRL["BRANCH"] == 1 or G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
+        G_MEM.FWD["IF_ID_WRITE"] = 0
+        G_MEM.FWD["STALL"] = 1
     else:
         G_MEM.FWD["PC_WRITE"] = 1
         G_MEM.FWD["IF_ID_WRITE"] = 1
-        G_UTL.stall = False
+        G_MEM.FWD["STALL"] = 0
 
 def IF():
     # Grab instruction from memory array
@@ -69,8 +72,8 @@ def IF():
         curInst = 0
 
     # Set simulator flags
-    G_UTL.ran["IF"] = (0, 0) if G_UTL.stall else (G_MEM.PC//4, curInst)
-    G_UTL.wasIdle["IF"] = G_UTL.stall
+    G_UTL.ran["IF"] = (0, 0) if G_MEM.FWD["STALL"] == 1 else (G_MEM.PC//4, curInst)
+    G_UTL.wasIdle["IF"] = (G_MEM.FWD["STALL"] == 1)
 
     if G_MEM.FWD["IF_ID_WRITE"] == 1 or not G_UTL.fwd:
         # Set IF/ID.NPC
@@ -83,16 +86,15 @@ def IF():
         # Set own PC (PC Multiplexer)
         if G_MEM.EX_MEM["ZERO"] == 1 and G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
             G_MEM.PC = G_MEM.EX_MEM["BR_TGT"]
-            print("jumped to {}".format(G_MEM.EX_MEM["BR_TGT"]))
         else:
             G_MEM.PC = G_MEM.PC + 4
 
 def ID():
     # Set simulator flags
-    G_UTL.ran["ID"] = (0, 0) if G_UTL.stall else G_UTL.ran["IF"]
-    G_UTL.wasIdle["ID"] = G_UTL.stall
+    G_UTL.ran["ID"] = (0, 0) if G_MEM.FWD["STALL"] == 1 else G_UTL.ran["IF"]
+    G_UTL.wasIdle["ID"] = (G_MEM.FWD["STALL"] == 1)
 
-    if G_UTL.stall:
+    if G_MEM.FWD["STALL"] == 1:
         # Stall the pipeline, adding a bubble
         G_MEM.ID_EX_CTRL["REG_DST"] = 0
         G_MEM.ID_EX_CTRL["ALU_SRC"] = 0

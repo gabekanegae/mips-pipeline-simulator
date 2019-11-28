@@ -29,4 +29,4 @@ EX_MEM_CTRL = {"MEM_READ": 0, "MEM_WRITE": 0, "BRANCH": 0, "MEM_TO_REG": 0, "REG
 MEM_WB_CTRL = {"MEM_TO_REG": 0, "REG_WRITE": 0}
 
 # Forwarding Unit Signals
-FWD = {"PC_WRITE": 1, "IF_ID_WRITE": 1, "FWD_A": 0, "FWD_B": 0}
+FWD = {"PC_WRITE": 1, "IF_ID_WRITE": 1, "FWD_A": 0, "FWD_B": 0, "STALL": 0}
