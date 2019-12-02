@@ -1,7 +1,7 @@
 import sys
 import instTranslator
 import stages
-from utils import *
+import utils
 
 import G_MEM, G_UTL
 
@@ -9,7 +9,7 @@ def main():
     filename = "program.asm"
 
     # Read .asm
-    program = readFile(filename)
+    program = utils.readFile(filename)
     programLength = len(program)
 
     # Encode and load .asm into memory
@@ -33,7 +33,7 @@ def main():
             return
 
     # Print the program as loaded
-    printInstMem()
+    utils.printInstMem()
     print()
 
     # Doesn't print memory after each clock
@@ -79,11 +79,11 @@ def main():
         # Print resulting memory
         if not silent:
             print("─"*(83+len(str(clk))))
-            printPC()
-            if G_UTL.data_hzd or G_UTL.ctrl_hzd: printFwdAndHazard()
-            printPipelineRegs()
-            printRegMem()
-            printDataMem()
+            utils.printPC()
+            if G_UTL.data_hzd or G_UTL.ctrl_hzd: utils.printFwdAndHazard()
+            utils.printPipelineRegs()
+            utils.printRegMem()
+            utils.printDataMem()
             print("─"*(83+len(str(clk))))
         clk += 1
 
@@ -98,9 +98,9 @@ def main():
 
     if silent:
         print()
-        printPipelineRegs()
-        printRegMem()
-        printDataMem()
+        utils.printPipelineRegs()
+        utils.printRegMem()
+        utils.printDataMem()
     else:
         print("Empty pipeline, ending execution...")
 
@@ -108,7 +108,7 @@ def main():
     print("Program ran in {} clocks.".format(clk))
     print()
 
-    printHistory(clkHistory)
+    utils.printHistory(clkHistory)
 
     return
 

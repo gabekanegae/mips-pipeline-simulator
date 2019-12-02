@@ -16,20 +16,14 @@ def printFwdAndHazard():
     if G_MEM.FWD["PC_WRITE"] == 1 and G_MEM.FWD["IF_ID_WRITE"] == 1 and G_MEM.FWD["FWD_A"] == 0 and G_MEM.FWD["FWD_B"] == 0:
         print("               ║ No action.                                             ║")
     else:
-        if G_MEM.FWD["PC_WRITE"] == 0 and G_MEM.FWD["IF_ID_WRITE"] == 0:
-            print("               ║ Stalling (blocking write on PC and IF/ID)...           ║")
-        elif G_MEM.ID_EX_CTRL["BRANCH"] == 1 or G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
+        if (G_MEM.FWD["PC_WRITE"] == 0 and G_MEM.FWD["IF_ID_WRITE"] == 0) or (G_MEM.ID_EX_CTRL["BRANCH"] == 1 or G_MEM.EX_MEM_CTRL["BRANCH"] == 1):
             print("               ║ Stalling (blocking write on PC and IF/ID)...           ║")
 
-        if G_MEM.FWD["FWD_A"] == 1:
-            print("               ║ FWD_A=1 (MEM/WB.ALU_OUT -> A)...                       ║")
-        elif G_MEM.FWD["FWD_A"] == 2:
-            print("               ║ FWD_A=2 (EX/MEM.ALU_OUT -> A)...                       ║")
+        if G_MEM.FWD["FWD_A"] != 0:
+            print("               ║ FWD_A={} (MEM/WB.ALU_OUT -> A)...                       ║".format(G_MEM.FWD["FWD_A"]))
 
-        if G_MEM.FWD["FWD_B"] == 1:
-            print("               ║ FWD_B=1 (MEM/WB.ALU_OUT -> Mux @ aluB and EX/MEM.B)... ║")
-        elif G_MEM.FWD["FWD_B"] == 2:
-            print("               ║ FWD_B=2 (EX/MEM.ALU_OUT -> Mux @ aluB and EX/MEM.B)... ║")
+        if G_MEM.FWD["FWD_B"] != 0:
+            print("               ║ FWD_B={} (MEM/WB.ALU_OUT -> Mux @ aluB and EX/MEM.B)... ║".format(G_MEM.FWD["FWD_B"]))
     print("               ╚════════════════════════════════════════════════════════╝")
 
 def printPipelineRegs():
