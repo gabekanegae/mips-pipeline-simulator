@@ -57,10 +57,8 @@ def printPC():
 def printInstMem():
     print("╔═════╦═════════════════════════════[PROGRAM]═══════════╦════════════════════════╗")
 
-    i = 0
     for i in range(len(G_MEM.INST)):
         print("║ {:>3} ║ 0x{:08X} = 0b{:032b} ║ {:<22} ║".format(i*4, G_MEM.INST[i], G_MEM.INST[i], instTranslator.decode(G_MEM.INST[i])))
-        i += 1
 
     print("╚═════╩═════════════════════════════════════════════════╩════════════════════════╝")
 
@@ -78,10 +76,12 @@ def printRegMem():
 
 def printDataMem():
     print("    ╔══════════════════╦═══════════════[MEMORY]══════════════╦══════════════════╗")
+
     memSize = len(G_MEM.DATA)
     for i in range(memSize//4):
         a, b, c, d = i*4, (memSize)+i*4, (memSize*2)+i*4, (memSize*3)+i*4
         print("    ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║ [{:03}]=[{:08X}] ║".format(a, G_MEM.DATA[a//4], b, G_MEM.DATA[b//4], c, G_MEM.DATA[c//4], d, G_MEM.DATA[d//4]))        
+
     print("    ╚══════════════════╩══════════════════╩══════════════════╩══════════════════╝")
 
 def printHistory(clkHistory):
