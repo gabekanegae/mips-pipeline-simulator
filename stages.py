@@ -86,7 +86,7 @@ def IF():
         # Set own PC (PC Multiplexer)
         if G_MEM.EX_MEM["ZERO"] == 1 and G_MEM.EX_MEM_CTRL["BRANCH"] == 1:
             G_MEM.PC = G_MEM.EX_MEM["BR_TGT"]
-        else:
+        elif G_MEM.FWD["STALL"] != 1:
             G_MEM.PC = G_MEM.PC + 4
 
 def ID():
