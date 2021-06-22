@@ -45,7 +45,8 @@ def printPipelineRegs():
     print("║                    ║      RT=[{:08X}] ║       B=[{:08X}] ║ ALU_OUT=[{:08X}] ║".format(G_MEM.ID_EX["RT"], G_MEM.EX_MEM["B"], G_MEM.MEM_WB["ALU_OUT"]))
     print("║                    ║      RD=[{:08X}] ║      RD=[{:08X}] ║      RD=[{:08X}] ║".format(G_MEM.ID_EX["RD"], G_MEM.EX_MEM["RD"], G_MEM.MEM_WB["RD"]))
     print("║                    ║     IMM=[{:08X}] ║                    ║                    ║".format(G_MEM.ID_EX["IMM"]))
-    print("║                    ║      RS=[{:08X}] ║                    ║                    ║".format(G_MEM.ID_EX["RS"]))
+    if G_UTL.data_hzd or G_UTL.ctrl_hzd:
+        print("║                    ║      RS=[{:08X}] ║                    ║                    ║".format(G_MEM.ID_EX["RS"]))
     print("╚════════════════════╩════════════════════╩════════════════════╩════════════════════╝")
 
 def printPC():
