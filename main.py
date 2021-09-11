@@ -59,8 +59,8 @@ def main():
         stages.MEM()
         stages.EX()
         stages.ID()
-        stages.ID_hzd()
         stages.IF()
+        stages.ID_hzd()
 
         # Keep only the 32 LSB from memory
         for i in range(len(G_MEM.REGS)):
