@@ -18,12 +18,12 @@ import G_MEM, G_UTL
 
 # Convert from string to int
 def encode(inst):
-    inst = inst.replace(",", "") # Ignore commas
+    inst = inst.replace(',', '') # Ignore commas
 
     # Replace register names with its index
     for i in range(len(G_UTL.regNames)):
         inst = inst.replace(G_UTL.regNames[i], str(i))
-    inst = inst.replace("$", "") # $0, $4, $7, etc.
+    inst = inst.replace('$', '') # $0, $4, $7, etc.
 
     inst = inst.split()
 
@@ -31,7 +31,7 @@ def encode(inst):
     if inst[0] in G_UTL.rTypeWords: # R-Type
         out = 0b000000 << 5
 
-        if inst[0] == "sll" or inst[0] == "srl":
+        if inst[0] == 'sll' or inst[0] == 'srl':
             try:
                 rd, rt, shamt = [int(i) for i in inst[1:]]
             except:
@@ -73,12 +73,12 @@ def encode(inst):
             out <<= 11
             out |= G_UTL.rTypeWords[inst[0]]
 
-    elif inst[0] == "lw" or inst[0] == "sw":
-        opcode = {"lw": 0b100011, "sw": 0b101011}
+    elif inst[0] == 'lw' or inst[0] == 'sw':
+        opcode = {'lw': 0b100011, 'sw': 0b101011}
         out = opcode[inst[0]] << 5
 
         try:
-            inst[2] = inst[2].split("(")
+            inst[2] = inst[2].split('(')
             inst[2:] = inst[2][0], inst[2][1][:-1]
 
             rt, offset, rs = [int(i) for i in inst[1:]]
@@ -98,7 +98,7 @@ def encode(inst):
         out <<= 16
         out |= offset
 
-    elif inst[0] == "beq":
+    elif inst[0] == 'beq':
         out = 0b000100 << 5
 
         try:
@@ -119,7 +119,7 @@ def encode(inst):
         out <<= 16
         out |= offset
 
-    elif inst[0] == "addi":
+    elif inst[0] == 'addi':
         out = 0b001000 << 5
 
         try:
@@ -144,9 +144,9 @@ def encode(inst):
 
 # Convert from int to string
 def decode(inst):
-    inst = "{:032b}".format(inst)
+    inst = f'{inst:032b}'
 
-    out = ""
+    out = ''
     opcode = int(inst[0:6], 2)
     rs, rt = int(inst[6:11], 2), int(inst[11:16], 2)
     last16 = inst[16:32]
@@ -154,23 +154,21 @@ def decode(inst):
     if opcode == 0b000000: # R-Type
         rd, aluOp = int(last16[0:5], 2), int(last16[10:16], 2)
         
-        if aluOp == G_UTL.rTypeWords["sll"] or aluOp == G_UTL.rTypeWords["srl"]:
+        if aluOp == G_UTL.rTypeWords['sll'] or aluOp == G_UTL.rTypeWords['srl']:
             shamt = int(last16[5:10], 2)
-            out = "{} {}, {}, {}".format(G_UTL.rTypeBins[aluOp], G_UTL.regNames[rd],
-                                         G_UTL.regNames[rt], shamt)
+            out = f'{G_UTL.rTypeBins[aluOp]} {G_UTL.regNames[rd]}, {G_UTL.regNames[rt]}, {shamt}'
         else:
-            out = "{} {}, {}, {}".format(G_UTL.rTypeBins[aluOp], G_UTL.regNames[rd],
-                                         G_UTL.regNames[rs], G_UTL.regNames[rt])
+            out = f'{G_UTL.rTypeBins[aluOp]} {G_UTL.regNames[rd]}, {G_UTL.regNames[rs]}, {G_UTL.regNames[rt]}'
     elif opcode == 0b100011 or opcode == 0b101011: # lw/sw
         if opcode == 0b100011:
-            out = "lw"
+            out = 'lw'
         elif opcode == 0b101011:
-            out = "sw"
+            out = 'sw'
 
-        out += " {}, {}({})".format(G_UTL.regNames[rt], int(last16, 2), G_UTL.regNames[rs])
+        out += f' {G_UTL.regNames[rt]}, {int(last16, 2)}({G_UTL.regNames[rs]})'
     elif opcode == 0b000100: # beq
-        out = "beq {}, {}, {}".format(G_UTL.regNames[rs], G_UTL.regNames[rt], int(last16, 2))
+        out = f'beq {G_UTL.regNames[rs]}, {G_UTL.regNames[rt]}, {int(last16, 2)}'
     elif opcode == 0b001000: # addi
-        out = "addi {}, {}, {}".format(G_UTL.regNames[rt], G_UTL.regNames[rs], int(last16, 2))
+        out = f'addi {G_UTL.regNames[rt]}, {G_UTL.regNames[rs]}, {int(last16, 2)}'
 
     return out
