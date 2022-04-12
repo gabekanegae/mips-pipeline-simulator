@@ -1,7 +1,7 @@
 # mips-pipeline-simulator
 A MIPS Simulator with a 5-stage pipeline.
 
-The simulator will run code from the file **program.asm** and print the actions and resulting memory after every clock.
+The simulator will run code from a file given as CLI argument (default: **program.asm**) and print the actions and resulting memory after every clock.
 
 Run it with `-s` to output only the final state of the registers and memory.
 

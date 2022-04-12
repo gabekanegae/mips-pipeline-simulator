@@ -6,7 +6,10 @@ import utils
 import G_MEM, G_UTL
 
 def main():
-    filename = 'program.asm'
+    try:
+        filename = next(arg for arg in sys.argv[1:] if not arg.startswith('-'))
+    except StopIteration:
+        filename = 'program.asm'
 
     # Read .asm
     program = utils.readFile(filename)
