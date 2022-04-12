@@ -1,5 +1,5 @@
 # Load some data into memory
-addi $t0, $zero, 15     # $t0 = 0xF
+addi $t0, $zero, 0xF    # $t0 = 0xF
 sw $t0, 0($zero)        # Copy $t0 to memory[0]
 addi $t1, $zero, 240    # $t1 = 0xF0
 sw $t1, 4($zero)        # Copy $t1 to memory[4]

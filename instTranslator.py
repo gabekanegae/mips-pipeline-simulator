@@ -33,7 +33,7 @@ def encode(inst):
 
         if inst[0] == 'sll' or inst[0] == 'srl':
             try:
-                rd, rt, shamt = [int(i) for i in inst[1:]]
+                rd, rt, shamt = [int(i, 0) for i in inst[1:]] # Accepts any base (e.g. 0b, 0o, 0x)
             except:
                 return G_UTL.EARG # Not correct number of arguments
 
@@ -54,7 +54,7 @@ def encode(inst):
 
         else: # R-Types other than sll/srl
             try:
-                rd, rs, rt = [int(i) for i in inst[1:]]
+                rd, rs, rt = [int(i, 0) for i in inst[1:]] # Accepts any base (e.g. 0b, 0o, 0x)
             except:
                 return G_UTL.EARG # Not correct number of arguments
 
@@ -81,7 +81,7 @@ def encode(inst):
             inst[2] = inst[2].split('(')
             inst[2:] = inst[2][0], inst[2][1][:-1]
 
-            rt, offset, rs = [int(i) for i in inst[1:]]
+            rt, offset, rs = [int(i, 0) for i in inst[1:]] # Accepts any base (e.g. 0b, 0o, 0x)
         except:
             return G_UTL.EARG # Not correct number of arguments
 
@@ -102,7 +102,7 @@ def encode(inst):
         out = 0b000100 << 5
 
         try:
-            rs, rt, offset = [int(i) for i in inst[1:]]
+            rs, rt, offset = [int(i, 0) for i in inst[1:]] # Accepts any base (e.g. 0b, 0o, 0x)
         except:
             return G_UTL.EARG # Not correct number of arguments
 
@@ -123,7 +123,7 @@ def encode(inst):
         out = 0b001000 << 5
 
         try:
-            rt, rs, imm = [int(i) for i in inst[1:]]
+            rt, rs, imm = [int(i, 0) for i in inst[1:]] # Accepts any base (e.g. 0b, 0o, 0x)
         except:
             return G_UTL.EARG # Not correct number of arguments
 
